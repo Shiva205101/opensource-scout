@@ -2,22 +2,33 @@
 
 :root {
   /* Default to dark theme - RGB values for Tailwind opacity support */
-  --background: #0f172a;
-  --surface-raw: 30, 41, 59;
-  /* #1e293b */
+  --background: #06080d;
+  --surface-raw: 18, 22, 29;
+  /* #12161d */
   --surface: rgb(var(--surface-raw));
-  --surface-hover-raw: 51, 65, 85;
-  /* #334155 */
+  --surface-hover-raw: 28, 34, 44;
+  /* #1c222c */
   --surface-hover: rgb(var(--surface-hover-raw));
   --primary-raw: 59, 130, 246;
   /* #3b82f6 */
   --primary: rgb(var(--primary-raw));
   --secondary: #10b981;
   --accent: #8b5cf6;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --border: #334155;
+  --text-main: #f4f7fb;
+  --text-muted: #9aa7bb;
+  --border: #2c3442;
   --ring: rgba(59, 130, 246, 0.5);
+  --text-inverse: #ffffff;
+  --success-raw: 16, 185, 129;
+  --warning-raw: 245, 158, 11;
+  --danger-raw: 239, 68, 68;
+  --glass-bg-raw: 16, 20, 27;
+  --glass-bg-strong-raw: 8, 10, 14;
+  --glass-border-raw: 125, 141, 163;
+  --glass-shadow: 0 24px 56px -24px rgba(0, 0, 0, 0.7);
+  --glass-shell-alpha: 0.72;
+  --glass-card-alpha: 0.62;
+  --glass-soft-alpha: 0.5;
 }
 
 [data-theme='light'] {
@@ -33,10 +44,21 @@
   --primary: rgb(var(--primary-raw));
   --secondary: #059669;
   --accent: #7c3aed;
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: #0b1220;
+  --text-muted: #334155;
   --border: #e2e8f0;
   --ring: rgba(37, 99, 235, 0.3);
+  --text-inverse: #ffffff;
+  --success-raw: 5, 150, 105;
+  --warning-raw: 180, 83, 9;
+  --danger-raw: 220, 38, 38;
+  --glass-bg-raw: 255, 255, 255;
+  --glass-bg-strong-raw: 248, 250, 252;
+  --glass-border-raw: 148, 163, 184;
+  --glass-shadow: 0 24px 56px -24px rgba(15, 23, 42, 0.25);
+  --glass-shell-alpha: 0.6;
+  --glass-card-alpha: 0.52;
+  --glass-soft-alpha: 0.4;
 }
 
 * {
@@ -45,10 +67,15 @@
 
 body {
   background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 12% 12%, rgba(255, 255, 255, 0.05), transparent 30%),
+    radial-gradient(circle at 88% 20%, rgba(var(--primary-raw), 0.09), transparent 32%),
+    radial-gradient(circle at 30% 85%, rgba(16, 185, 129, 0.06), transparent 30%);
   color: var(--text-main);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-attachment: fixed;
 }
 
 h1,
@@ -92,6 +119,29 @@ h4,
   border: 1px solid var(--border);
 }
 
+.glass-shell {
+  background: rgb(var(--glass-bg-strong-raw) / var(--glass-shell-alpha));
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid rgba(var(--glass-border-raw), 0.24);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-card {
+  background: rgb(var(--glass-bg-raw) / var(--glass-card-alpha));
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-backdrop-filter: blur(20px) saturate(1.25);
+  border: 1px solid rgba(var(--glass-border-raw), 0.2);
+  box-shadow: 0 14px 36px -24px rgba(15, 23, 42, 0.45);
+}
+
+.glass-soft {
+  background: rgb(var(--glass-bg-raw) / var(--glass-soft-alpha));
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  border: 1px solid rgba(var(--glass-border-raw), 0.18);
+}
+
 /* Select and Option overrides for consistency */
 select {
   background-image: none;
@@ -100,4 +150,16 @@ select {
 select option {
   background-color: var(--surface);
   color: var(--text-main);
+}
+
+.issue-overlay {
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+[data-theme='light'] .issue-overlay {
+  background: rgba(15, 23, 42, 0.35);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }

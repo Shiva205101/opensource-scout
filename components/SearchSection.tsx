@@ -34,7 +34,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
       {/* Main Search Bar */}
       <form onSubmit={handleSubmit} className="relative group z-20">
         <div className="absolute -inset-1 bg-gradient-to-r from-primary via-accent to-secondary rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-        <div className="relative flex items-center bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden focus-within:border-primary/50 transition-all duration-300">
+        <div className="relative flex items-center glass-card rounded-2xl shadow-2xl overflow-hidden focus-within:border-primary/50 transition-all duration-300">
           <div className="pl-6 text-text-muted">
             {aiThinking ? <Sparkles className="w-6 h-6 animate-pulse text-accent" /> : <Search className="w-6 h-6" />}
           </div>
@@ -66,7 +66,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
           <select
             value={filters.language}
             onChange={(e) => handleFilterChange('language', e.target.value)}
-            className="w-full appearance-none bg-surface border border-border text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
+            className="w-full appearance-none glass-soft text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
           >
             {LANGUAGES.map(lang => (
               <option key={lang.value} value={lang.value}>{lang.label}</option>
@@ -80,7 +80,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
           <select
             value={filters.minStars}
             onChange={(e) => handleFilterChange('minStars', e.target.value)}
-            className="w-full appearance-none bg-surface border border-border text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
+            className="w-full appearance-none glass-soft text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
           >
             {STAR_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -94,7 +94,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
           <select
             value={filters.sort}
             onChange={(e) => handleFilterChange('sort', e.target.value)}
-            className="w-full appearance-none bg-surface border border-border text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
+            className="w-full appearance-none glass-soft text-text-main hover:border-primary/30 py-3.5 px-5 pr-10 rounded-xl text-sm font-medium focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer shadow-sm"
           >
             {SORT_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -108,7 +108,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
           onClick={() => handleFilterChange('hasGoodFirstIssues', !filters.hasGoodFirstIssues)}
           className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl border text-sm font-semibold transition-all shadow-sm ${filters.hasGoodFirstIssues
             ? 'bg-secondary/10 border-secondary/50 text-secondary'
-            : 'bg-surface/50 border-border text-text-muted hover:text-text-main hover:border-primary/30'
+            : 'glass-soft text-text-muted hover:text-text-main hover:border-primary/30'
             }`}
         >
           <Filter className="w-4 h-4" />
@@ -128,7 +128,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({ onSearch, onFilter
               setInput(q);
               onSearch(q);
             }}
-            className="px-4 py-1.5 rounded-full bg-surface border border-border text-text-muted hover:text-primary hover:border-primary/30 transition-all text-xs font-semibold shadow-sm"
+            className="px-4 py-1.5 rounded-full glass-soft text-text-muted hover:text-primary hover:border-primary/30 transition-all text-xs font-semibold shadow-sm"
           >
             {q}
           </button>

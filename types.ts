@@ -22,6 +22,20 @@ export interface SearchResponse {
   items: Repository[];
 }
 
+export interface RepoIssue {
+  id: number;
+  number: number;
+  title: string;
+  html_url: string;
+  state: 'open' | 'closed';
+  created_at: string;
+  updated_at: string;
+  closed_at?: string | null;
+  user: {
+    login: string;
+  };
+}
+
 export enum GeminiModel {
   FLASH_PREVIEW = 'gemini-3-flash-preview',
   PRO_PREVIEW = 'gemini-3-pro-preview'

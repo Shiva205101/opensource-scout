@@ -109,7 +109,7 @@ function AppContent() {
     <div className="min-h-screen bg-background text-text-main font-sans selection:bg-primary/30">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-12 max-w-6xl">
+      <main className="container mx-auto px-4 py-12 max-w-6xl glass-shell rounded-3xl mt-8">
         <div className="mb-14 space-y-4">
           <h1 className="text-5xl md:text-7xl font-display font-extrabold text-center tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-secondary animate-in fade-in slide-in-from-bottom-4 duration-1000">
             Find Your Next Contribution
@@ -128,14 +128,14 @@ function AppContent() {
         />
 
         {error && (
-          <div className="mt-8 p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 font-medium">
+          <div className="mt-8 p-4 glass-soft border border-red-500/20 rounded-xl flex items-center gap-3 text-red-500 font-medium">
             <AlertCircle className="w-5 h-5" />
             <p>{error}</p>
           </div>
         )}
 
         {loading && !aiThinking && (
-          <div className="mt-20 flex flex-col items-center justify-center text-text-muted">
+          <div className="mt-20 flex flex-col items-center justify-center text-text-muted glass-soft rounded-2xl py-16">
             <Loader2 className="w-10 h-10 animate-spin mb-4 text-primary" />
             <p className="font-medium">Scouting GitHub...</p>
           </div>

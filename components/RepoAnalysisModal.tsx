@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { AnalysisModel, Repository } from '../types';
-import { analyzeRepository, getAllAnalysisModels, getAvailableAnalysisModels, RepoAnalysis } from '../services/geminiService';
+import { AnalysisModel, RepoIssue, Repository } from '../types';
+import { analyzeIssueInsights, analyzeRepository, getAllAnalysisModels, getAvailableAnalysisModels, IssueInsights, RepoAnalysis } from '../services/geminiService';
+import { fetchLatestIssueSnapshots } from '../services/githubService';
 import { X, Sparkles, Award, Target, BookOpen, ExternalLink, Activity } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -23,11 +24,26 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showIssuePopup, setShowIssuePopup] = useState(false);
+  const [issueLoading, setIssueLoading] = useState(false);
+  const [issueError, setIssueError] = useState<string | null>(null);
+  const [latestOpenIssue, setLatestOpenIssue] = useState<RepoIssue | null>(null);
+  const [latestClosedIssue, setLatestClosedIssue] = useState<RepoIssue | null>(null);
+  const [issueInsights, setIssueInsights] = useState<IssueInsights | null>(null);
   const selectedModelLabel = modelOptions.find((option) => option.value === selectedModel)?.label || selectedModel;
+  const formatDate = (value?: string | null) => value ? new Date(value).toLocaleDateString() : 'N/A';
 
   useEffect(() => {
     let mounted = true;
     const fetchAnalysis = async () => {
+      if (mounted) {
+        setShowIssuePopup(false);
+        setIssueError(null);
+        setIssueInsights(null);
+        setLatestOpenIssue(null);
+        setLatestClosedIssue(null);
+      }
+
       const modelIsConfigured = availableModelValues.has(selectedModel);
       if (!modelIsConfigured) {
         if (mounted) {
@@ -55,12 +71,36 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
     return () => { mounted = false; };
   }, [repo, selectedModel, selectedModelLabel, modelOptions, availableModelValues]);
 
+  const handleOpenIssuePopup = async () => {
+    if (showIssuePopup) {
+      setShowIssuePopup(false);
+      return;
+    }
+
+    setShowIssuePopup(true);
+    setIssueLoading(true);
+    setIssueError(null);
+    setIssueInsights(null);
+
+    try {
+      const { latestOpenIssue: openIssue, latestClosedIssue: closedIssue } = await fetchLatestIssueSnapshots(repo.full_name);
+      setLatestOpenIssue(openIssue);
+      setLatestClosedIssue(closedIssue);
+      const aiInsights = await analyzeIssueInsights(selectedModel, repo.full_name, openIssue, closedIssue);
+      setIssueInsights(aiInsights);
+    } catch (err) {
+      setIssueError('Could not load issue insights for this repository.');
+    } finally {
+      setIssueLoading(false);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="bg-surface border border-border w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="glass-shell w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-300">
 
         {/* Header */}
-        <div className="p-8 border-b border-border flex items-start justify-between bg-surface/50 backdrop-blur-xl">
+        <div className="p-8 border-b border-[rgba(var(--glass-border-raw),0.22)] flex items-start justify-between bg-[rgba(var(--glass-bg-raw),0.34)] backdrop-blur-2xl">
           <div>
             <h2 className="text-3xl font-display font-bold flex items-center gap-3 text-text-main">
               {repo.full_name}
@@ -96,7 +136,7 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto p-8 flex-grow custom-scrollbar space-y-10">
+        <div className="overflow-y-auto p-8 pb-12 flex-grow custom-scrollbar space-y-10 bg-[rgba(var(--glass-bg-raw),0.22)] backdrop-blur-xl">
           {loading ? (
             <div className="h-80 flex flex-col items-center justify-center text-text-muted gap-6">
               <div className="relative">
@@ -114,21 +154,106 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
               {/* Summary Section */}
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="md:col-span-2 space-y-6">
-                  <div className="bg-surface/50 border border-border p-6 rounded-2xl shadow-sm">
+                  <div className="glass-card p-6 rounded-2xl shadow-sm">
                     <h3 className="text-xs uppercase tracking-[0.2em] text-text-muted font-black mb-4 flex items-center gap-3">
                       <Sparkles className="w-4 h-4 text-accent" /> AI Insights
                     </h3>
                     <p className="text-text-main text-xl leading-relaxed font-medium">{analysis.summary}</p>
+                    <Button
+                      className="mt-6 h-10 px-5 rounded-xl border border-primary/40 shadow-lg shadow-primary/20 hover:brightness-110"
+                      style={{ backgroundColor: 'var(--primary)', color: 'var(--text-inverse)' }}
+                      onClick={handleOpenIssuePopup}
+                    >
+                      {showIssuePopup ? 'Hide Issue Insights' : 'Latest Issue Insights'}
+                    </Button>
+
+                    {showIssuePopup && (
+                      <div className="mt-6 rounded-2xl glass-card">
+                        <div className="p-5 border-b border-border">
+                          <h4 className="font-display font-bold text-lg text-text-main">Issue Insights</h4>
+                          <p className="text-sm text-text-muted">Generated with {selectedModelLabel}</p>
+                        </div>
+                        <div className="p-5 space-y-5">
+                          {issueLoading ? (
+                            <div className="py-8 text-center font-semibold text-text-main">Loading latest open/closed issues...</div>
+                          ) : issueError ? (
+                            <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-medium">
+                              {issueError}
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid md:grid-cols-2 gap-4">
+                                <div className="min-w-0 border rounded-xl p-4 glass-soft border-border">
+                                  <p className="text-xs uppercase tracking-widest font-black mb-2 text-text-main">Latest Open Issue</p>
+                                  {latestOpenIssue ? (
+                                    <div className="space-y-2">
+                                      <a
+                                        href={latestOpenIssue.html_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="block text-primary font-bold hover:underline leading-snug [overflow-wrap:anywhere]"
+                                      >
+                                        #{latestOpenIssue.number} {latestOpenIssue.title}
+                                      </a>
+                                      <p className="text-sm text-text-main">Updated: {formatDate(latestOpenIssue.updated_at)}</p>
+                                      <p className="text-sm text-text-main">By: {latestOpenIssue.user.login}</p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-text-main">No open issues found.</p>
+                                  )}
+                                </div>
+                                <div className="min-w-0 border rounded-xl p-4 glass-soft border-border">
+                                  <p className="text-xs uppercase tracking-widest font-black mb-2 text-text-main">Latest Solved Issue</p>
+                                  {latestClosedIssue ? (
+                                    <div className="space-y-2">
+                                      <a
+                                        href={latestClosedIssue.html_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="block text-secondary font-bold hover:underline leading-snug [overflow-wrap:anywhere]"
+                                      >
+                                        #{latestClosedIssue.number} {latestClosedIssue.title}
+                                      </a>
+                                      <p className="text-sm text-text-main">Closed: {formatDate(latestClosedIssue.closed_at || latestClosedIssue.updated_at)}</p>
+                                      <p className="text-sm text-text-main">By: {latestClosedIssue.user.login}</p>
+                                    </div>
+                                  ) : (
+                                    <p className="text-text-main">No solved issues found.</p>
+                                  )}
+                                </div>
+                              </div>
+
+                              {issueInsights && (
+                                <div className="space-y-3">
+                                  <div className="p-4 rounded-xl border glass-soft border-border">
+                                    <p className="text-xs uppercase tracking-widest font-black mb-2 text-text-main">AI Insight on Open Issue</p>
+                                    <p className="font-semibold leading-relaxed text-text-main">{issueInsights.openIssueInsight}</p>
+                                  </div>
+                                  <div className="p-4 rounded-xl border glass-soft border-border">
+                                    <p className="text-xs uppercase tracking-widest font-black mb-2 text-text-main">AI Insight on Solved Issue</p>
+                                    <p className="font-semibold leading-relaxed text-text-main">{issueInsights.closedIssueInsight}</p>
+                                  </div>
+                                  <div className="p-4 rounded-xl border border-primary/25 bg-primary/10">
+                                    <p className="text-xs uppercase tracking-widest text-primary font-black mb-2">Suggested Next Step</p>
+                                    <p className="font-semibold leading-relaxed text-text-main">{issueInsights.contributionHint}</p>
+                                  </div>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-surface/30 p-6 rounded-2xl border border-border group transition-all duration-300 hover:border-primary/20 shadow-sm">
+                    <div className="glass-card p-6 rounded-2xl group transition-all duration-300 hover:border-primary/20 shadow-sm">
                       <h4 className="text-text-muted text-sm font-bold mb-2 flex items-center gap-2 tracking-wide"><Target className="w-4 h-4" /> Difficulty</h4>
                       <span className={`text-2xl font-display font-black ${analysis.difficulty === 'Beginner' ? 'text-secondary' :
                           analysis.difficulty === 'Intermediate' ? 'text-amber-500' : 'text-red-500'
                         }`}>{analysis.difficulty}</span>
                     </div>
-                    <div className="bg-surface/30 p-6 rounded-2xl border border-border group transition-all duration-300 hover:border-primary/20 shadow-sm">
+                    <div className="glass-card p-6 rounded-2xl group transition-all duration-300 hover:border-primary/20 shadow-sm">
                       <h4 className="text-text-muted text-sm font-bold mb-2 flex items-center gap-2 tracking-wide"><Award className="w-4 h-4" /> Potential Impact</h4>
                       <span className="text-2xl font-display font-black text-primary">{analysis.potentialImpact}</span>
                     </div>
@@ -136,7 +261,7 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
                 </div>
 
                 {/* Learning Curve Chart */}
-                <div className="bg-surface/30 p-6 rounded-2xl border border-border flex flex-col shadow-sm">
+                <div className="glass-card p-6 rounded-2xl flex flex-col shadow-sm">
                   <h4 className="text-text-muted text-sm font-bold mb-6 flex items-center gap-2 tracking-wide">
                     <Activity className="w-4 h-4" /> Learning Curve
                   </h4>
@@ -176,7 +301,7 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
                   <h3 className="font-display font-bold text-xl text-text-main flex items-center gap-3">
                     <BookOpen className="w-5 h-5 text-secondary" /> Roadmap to Contribute
                   </h3>
-                  <div className="bg-secondary/5 border border-secondary/20 p-6 rounded-2xl text-secondary font-medium leading-relaxed">
+                  <div className="glass-soft border border-secondary/20 p-6 rounded-2xl text-secondary font-medium leading-relaxed">
                     {analysis.gettingStartedTip}
                   </div>
                 </div>
@@ -186,7 +311,7 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
                   </h3>
                   <div className="flex flex-wrap gap-3">
                     {analysis.goodFor.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" className="text-sm px-4 py-2 font-bold border-border bg-surface shadow-sm hover:border-primary/40 transition-all">{skill}</Badge>
+                      <Badge key={idx} variant="outline" className="text-sm px-4 py-2 font-bold glass-soft shadow-sm hover:border-primary/40 transition-all">{skill}</Badge>
                     ))}
                   </div>
                 </div>
@@ -196,12 +321,18 @@ export const RepoAnalysisModal: React.FC<RepoAnalysisModalProps> = ({ repo, onCl
         </div>
 
         {/* Footer */}
-        <div className="p-6 border-t border-border bg-surface/50 backdrop-blur-xl flex justify-end gap-4">
-          <Button variant="ghost" onClick={onClose} className="font-bold px-6 h-12 rounded-xl border border-border">Close</Button>
+        <div className="p-6 border-t border-[rgba(var(--glass-border-raw),0.22)] bg-[rgba(var(--glass-bg-raw),0.34)] backdrop-blur-2xl flex justify-end gap-4 shadow-[0_-14px_28px_-18px_rgba(0,0,0,0.45)]">
+          <Button variant="outline" onClick={onClose} className="font-bold px-6 h-12 rounded-xl border border-border text-text-main bg-surface hover:bg-surface-hover">Close</Button>
           <a href={repo.html_url} target="_blank" rel="noreferrer">
-            <Button className="font-bold px-8 h-12 rounded-xl shadow-xl shadow-primary/20">Visit Repository</Button>
+            <Button
+              className="font-bold px-8 h-12 rounded-xl shadow-xl shadow-primary/20 hover:brightness-110"
+              style={{ backgroundColor: 'var(--primary)', color: 'var(--text-inverse)' }}
+            >
+              Visit Repository
+            </Button>
           </a>
         </div>
+
       </div>
     </div>
   );

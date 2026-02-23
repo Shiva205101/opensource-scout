@@ -8,10 +8,10 @@ interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ children, variant = 'default', className = '' }) => {
   const styles = {
-    default: 'bg-slate-800 text-slate-300 border-slate-700',
-    outline: 'bg-transparent border-slate-600 text-slate-400',
-    success: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    warning: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    default: 'bg-surface-hover/60 text-text-main border-border',
+    outline: 'bg-transparent border-border text-text-muted',
+    success: 'bg-[rgba(var(--success-raw),0.12)] text-[rgb(var(--success-raw))] border-[rgba(var(--success-raw),0.28)]',
+    warning: 'bg-[rgba(var(--warning-raw),0.12)] text-[rgb(var(--warning-raw))] border-[rgba(var(--warning-raw),0.28)]',
   };
 
   return (

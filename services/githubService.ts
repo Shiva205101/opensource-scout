@@ -1,5 +1,5 @@
 import { GITHUB_API_BASE } from '../constants';
-import { SearchResponse, Repository, SortOption } from '../types';
+import { RepoIssue, SearchResponse, Repository, SortOption } from '../types';
 
 export const searchRepositories = async (query: string, sort: SortOption = 'best-match'): Promise<Repository[]> => {
   const encodedQuery = encodeURIComponent(query.trim());
@@ -25,4 +25,35 @@ export const searchRepositories = async (query: string, sort: SortOption = 'best
 
   const data: SearchResponse = await response.json();
   return data.items || [];
+};
+
+const fetchLatestIssueByState = async (fullRepoName: string, state: 'open' | 'closed'): Promise<RepoIssue | null> => {
+  const url = `${GITHUB_API_BASE}/repos/${fullRepoName}/issues?state=${state}&sort=updated&direction=desc&per_page=20`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Accept': 'application/vnd.github.v3+json',
+    }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || `GitHub API Error: ${response.status}`);
+  }
+
+  const items = await response.json();
+  const latestIssue = (items || []).find((item: any) => !item.pull_request);
+  return latestIssue || null;
+};
+
+export const fetchLatestIssueSnapshots = async (fullRepoName: string): Promise<{
+  latestOpenIssue: RepoIssue | null;
+  latestClosedIssue: RepoIssue | null;
+}> => {
+  const [latestOpenIssue, latestClosedIssue] = await Promise.all([
+    fetchLatestIssueByState(fullRepoName, 'open'),
+    fetchLatestIssueByState(fullRepoName, 'closed')
+  ]);
+
+  return { latestOpenIssue, latestClosedIssue };
 };

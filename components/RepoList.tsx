@@ -10,7 +10,7 @@ interface RepoListProps {
 export const RepoList: React.FC<RepoListProps> = ({ repos, onSelectRepo }) => {
   if (repos.length === 0) {
     return (
-      <div className="mt-12 text-center text-slate-500">
+      <div className="mt-12 text-center text-text-muted">
         <p>No repositories found. Try a different search.</p>
       </div>
     );

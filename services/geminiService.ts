@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AnalysisModel, AnalysisModelOption, GeminiModel } from '../types';
+import { AnalysisModel, AnalysisModelOption, GeminiModel, RepoIssue } from '../types';
 import { SYSTEM_INSTRUCTION_SEARCH, SYSTEM_INSTRUCTION_ANALYSIS } from '../constants';
 
 const geminiApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
@@ -78,6 +78,12 @@ export interface RepoAnalysis {
   gettingStartedTip: string;
   potentialImpact: string;
   learningCurveData: { day: string; knowledge: number }[];
+}
+
+export interface IssueInsights {
+  openIssueInsight: string;
+  closedIssueInsight: string;
+  contributionHint: string;
 }
 
 const analyzeWithGemini = async (
@@ -208,4 +214,112 @@ export const analyzeRepository = async (
   }
 
   return analyzeWithOpenAI(model, repoName, description, language, topics);
+};
+
+const ISSUE_INSIGHTS_SCHEMA = {
+  type: "object",
+  properties: {
+    openIssueInsight: { type: "string" },
+    closedIssueInsight: { type: "string" },
+    contributionHint: { type: "string" }
+  },
+  required: ["openIssueInsight", "closedIssueInsight", "contributionHint"],
+  additionalProperties: false
+};
+
+const buildIssueInsightsPrompt = (
+  repoFullName: string,
+  openIssue: RepoIssue | null,
+  closedIssue: RepoIssue | null
+): string => `
+Repository: ${repoFullName}
+
+Latest Open Issue:
+${openIssue ? `#${openIssue.number} - ${openIssue.title}
+Updated: ${openIssue.updated_at}
+Author: ${openIssue.user.login}` : "No open issue found"}
+
+Latest Solved Issue:
+${closedIssue ? `#${closedIssue.number} - ${closedIssue.title}
+Closed: ${closedIssue.closed_at || closedIssue.updated_at}
+Author: ${closedIssue.user.login}` : "No closed issue found"}
+`;
+
+export const analyzeIssueInsights = async (
+  model: AnalysisModel,
+  repoFullName: string,
+  openIssue: RepoIssue | null,
+  closedIssue: RepoIssue | null
+): Promise<IssueInsights> => {
+  const prompt = buildIssueInsightsPrompt(repoFullName, openIssue, closedIssue);
+  const systemInstruction = `
+You are an open-source contribution advisor.
+Given one latest open issue and one latest solved issue, return JSON:
+{
+  "openIssueInsight": "One short practical insight about the current open issue and how a contributor could approach it.",
+  "closedIssueInsight": "One short practical insight from the solved issue (what likely got done / learning signal).",
+  "contributionHint": "One concrete next step for a contributor this week."
+}
+Return only valid JSON.
+`;
+
+  if (model === AnalysisModel.GEMINI_FLASH || model === AnalysisModel.GEMINI_PRO) {
+    if (!ai) throw new Error("API_KEY not found");
+
+    const response = await ai.models.generateContent({
+      model: model as GeminiModel,
+      contents: prompt,
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            openIssueInsight: { type: Type.STRING },
+            closedIssueInsight: { type: Type.STRING },
+            contributionHint: { type: Type.STRING }
+          }
+        }
+      }
+    });
+
+    if (!response.text) throw new Error("No issue insights generated");
+    return JSON.parse(response.text) as IssueInsights;
+  }
+
+  if (!openAiApiKey) throw new Error("OPENAI_API_KEY not found");
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${openAiApiKey}`
+    },
+    body: JSON.stringify({
+      model,
+      temperature: 0.3,
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: prompt }
+      ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "issue_insights",
+          strict: true,
+          schema: ISSUE_INSIGHTS_SCHEMA
+        }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI request failed: ${response.status} ${errorText}`);
+  }
+
+  const data = await response.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content) throw new Error("No issue insights generated");
+  return JSON.parse(content) as IssueInsights;
 };

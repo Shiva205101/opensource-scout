@@ -6,7 +6,7 @@ export const Navbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <nav className="border-b border-border bg-background/80 backdrop-blur-xl sticky top-0 z-50">
+    <nav className="glass-shell sticky top-0 z-50">
       <div className="container mx-auto px-4 h-20 flex items-center justify-between max-w-6xl">
         <div className="flex items-center gap-3 group cursor-pointer">
           <div className="bg-primary/10 p-2.5 rounded-xl group-hover:bg-primary/20 transition-all duration-300">
@@ -18,7 +18,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="hidden lg:flex items-center gap-2 text-sm font-medium text-text-muted bg-surface/50 px-4 py-2 rounded-full border border-border shadow-sm">
+          <div className="hidden lg:flex items-center gap-2 text-sm font-medium text-text-muted glass-soft px-4 py-2 rounded-full shadow-sm">
             <Sparkles className="w-4 h-4 text-accent animate-pulse" />
             <span>Powered by Gemini + OpenAI</span>
           </div>

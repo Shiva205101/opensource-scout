@@ -11,13 +11,13 @@ interface RepoCardProps {
 
 export const RepoCard: React.FC<RepoCardProps> = ({ repo, onClick }) => {
   return (
-    <div className="group relative flex flex-col bg-surface border border-border rounded-2xl p-6 hover:border-primary/40 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1">
+    <div className="group relative flex flex-col glass-card rounded-2xl p-6 hover:border-primary/40 transition-all duration-300 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-4">
           <img
             src={repo.owner.avatar_url}
             alt={repo.owner.login}
-            className="w-12 h-12 rounded-xl border border-border bg-surface shadow-sm"
+            className="w-12 h-12 rounded-xl border border-border glass-soft shadow-sm"
           />
           <div>
             <h3 className="font-display font-bold text-xl leading-tight text-text-main group-hover:text-primary transition-colors line-clamp-1" title={repo.full_name}>
