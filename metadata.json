@@ -1,0 +1,5 @@
+{
+  "name": "OpenSource Scout",
+  "description": "An intelligent dashboard to discover, filter, and analyze open source projects for contribution using Gemini AI.",
+  "requestFramePermissions": []
+}

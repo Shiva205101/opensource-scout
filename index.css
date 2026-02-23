@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Default to dark theme - RGB values for Tailwind opacity support */
+  --background: #0f172a;
+  --surface-raw: 30, 41, 59;
+  /* #1e293b */
+  --surface: rgb(var(--surface-raw));
+  --surface-hover-raw: 51, 65, 85;
+  /* #334155 */
+  --surface-hover: rgb(var(--surface-hover-raw));
+  --primary-raw: 59, 130, 246;
+  /* #3b82f6 */
+  --primary: rgb(var(--primary-raw));
+  --secondary: #10b981;
+  --accent: #8b5cf6;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --border: #334155;
+  --ring: rgba(59, 130, 246, 0.5);
+}
+
+[data-theme='light'] {
+  --background: #f8fafc;
+  --surface-raw: 255, 255, 255;
+  /* #ffffff */
+  --surface: rgb(var(--surface-raw));
+  --surface-hover-raw: 241, 245, 249;
+  /* #f1f5f9 */
+  --surface-hover: rgb(var(--surface-hover-raw));
+  --primary-raw: 37, 99, 235;
+  /* #2563eb */
+  --primary: rgb(var(--primary-raw));
+  --secondary: #059669;
+  --accent: #7c3aed;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --ring: rgba(37, 99, 235, 0.3);
+}
+
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text-main);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Selection */
+::selection {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Glassmorphism helpers */
+.glass {
+  background: rgba(var(--surface-raw), 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Select and Option overrides for consistency */
+select {
+  background-image: none;
+}
+
+select option {
+  background-color: var(--surface);
+  color: var(--text-main);
+}

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenSource Scout</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Force immediate theme application to prevent flash of unstyled content
+    (function () {
+      const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            background: 'var(--background)',
+            surface: 'rgb(var(--surface-raw) / <alpha-value>)',
+            'surface-hover': 'rgb(var(--surface-hover-raw) / <alpha-value>)',
+            primary: 'rgb(var(--primary-raw) / <alpha-value>)',
+            secondary: 'var(--secondary)',
+            accent: 'var(--accent)',
+            'text-main': 'var(--text-main)',
+            'text-muted': 'var(--text-muted)',
+            border: 'var(--border)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <script type="importmap">
+{
+  "imports": {
+    "clsx": "https://esm.sh/clsx@^2.1.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@^3.4.1",
+    "recharts": "https://esm.sh/recharts@^3.7.0",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+
+</html>
